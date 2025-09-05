@@ -8,8 +8,8 @@ export async function middleware(request: NextRequest) {
   // Public routes that don't require authentication
   const publicRoutes = ['/login', '/api/auth/login'];
   
-  // Routes that require authentication but no role check
-  const authOnlyRoutes = ['/role-selection', '/api/auth/set-role', '/api/auth/me'];
+  // Routes that require authentication but no role check (kept for future use)
+  // const authOnlyRoutes = ['/role-selection', '/api/auth/set-role', '/api/auth/me'];
   
   // Role-based route restrictions
   const adminRoutes = ['/admin'];
@@ -66,8 +66,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // Get current role - prefer currentRole from token, fallback to primary role
-  const currentRole = (payload as any).currentRole || payload.role;
-  const userRoles = (payload as any).roles || [payload.role];
+  const currentRole = (payload as { currentRole?: string; role: string }).currentRole || payload.role;
+  const userRoles = (payload as { roles?: string[]; role: string }).roles || [payload.role];
 
   // Check role-based route access
   if (adminRoutes.some(route => pathname.startsWith(route))) {

@@ -68,10 +68,12 @@ export function AdminNav({ user }: AdminNavProps) {
   };
 
   const navItems = [
-    { href: '/admin', label: 'Overview', icon: FileText },
-    { href: '/admin?section=user-management', label: 'User Management', icon: Users },
+    { href: '/admin', label: 'Dashboard', icon: Shield },
     { href: '/admin?section=admin-requests', label: 'All Requests', icon: FileText },
-    { href: '/admin?section=system', label: 'System Settings', icon: Settings },
+    { href: '/admin?section=audit-trail', label: 'Audit Trail', icon: Shield },
+    { href: '/admin?section=request-lifecycle', label: 'Request Lifecycle', icon: FileText },
+    { href: '/admin?section=system-monitoring', label: 'System Health', icon: Settings },
+    { href: '/admin?section=user-management', label: 'User Management', icon: Users },
   ];
 
   const ThemeToggle = () => {

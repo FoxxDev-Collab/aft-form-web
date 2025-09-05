@@ -1,9 +1,13 @@
 'use client';
 
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { FileText, Users, Shield, Settings } from 'lucide-react';
+import { FileText, Settings } from 'lucide-react';
 import { UserManagement } from '@/app/admin/user-management';
 import { AdminRequestsView } from '@/app/admin/admin-requests-view';
+import { AdminDashboard } from '@/app/admin/admin-dashboard';
+import { AuditTrail } from '@/app/admin/audit-trail';
+import { RequestLifecycle } from '@/app/admin/request-lifecycle';
+import { SystemMonitoring } from '@/app/admin/system-monitoring';
 import { useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 
@@ -32,6 +36,12 @@ function AdminContent() {
             <AdminRequestsView />
           </div>
         );
+      case 'audit-trail':
+        return <AuditTrail />;
+      case 'request-lifecycle':
+        return <RequestLifecycle />;
+      case 'system-monitoring':
+        return <SystemMonitoring />;
       case 'system':
         return (
           <Card>
@@ -50,74 +60,7 @@ function AdminContent() {
           </Card>
         );
       default:
-        return (
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="w-5 h-5" />
-                  Admin Dashboard
-                </CardTitle>
-                <CardDescription>
-                  AFT System Administration Overview
-                </CardDescription>
-              </CardHeader>
-            </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <FileText className="w-5 h-5" />
-                    All Requests
-                  </CardTitle>
-                  <CardDescription>
-                    View and manage all AFT requests
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Monitor and manage all file transfer requests in the system
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Users className="w-5 h-5" />
-                    User Management
-                  </CardTitle>
-                  <CardDescription>
-                    Manage users and permissions
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Create, edit, and manage user accounts and access levels
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Settings className="w-5 h-5" />
-                    System Settings
-                  </CardTitle>
-                  <CardDescription>
-                    Configure system settings
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Adjust system-wide configurations and preferences
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        );
+        return <AdminDashboard />;
     }
   };
 
