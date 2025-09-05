@@ -12,11 +12,8 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Check if user is media custodian or admin
-    if (!user.roles?.includes('media_custodian') && user.primaryRole !== 'media_custodian' && 
-        !user.roles?.includes('admin') && user.primaryRole !== 'admin') {
-      return NextResponse.json({ error: 'Forbidden - Media Custodian access required' }, { status: 403 });
-    }
+    // Allow access for requestors (to see available drives) and custodians/admins
+    // No additional permission check needed - all authenticated users can see available drives
 
     // Get only available drives
     const availableDrives = await db()

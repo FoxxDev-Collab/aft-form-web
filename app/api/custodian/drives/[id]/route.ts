@@ -28,12 +28,12 @@ export async function PUT(
     }
 
     const body = await request.json();
-    const { serialNumber, model, capacity, mediaController, classification, status, notes } = body;
+    const { serialNumber, model, capacity, mediaController, mediaType, classification, status, notes } = body;
 
     // Validate required fields
-    if (!serialNumber || !model || !capacity || !mediaController || !classification) {
+    if (!serialNumber || !model || !capacity || !mediaController || !mediaType || !classification) {
       return NextResponse.json({ 
-        error: 'Missing required fields: serialNumber, model, capacity, mediaController, classification' 
+        error: 'Missing required fields: serialNumber, model, capacity, mediaController, mediaType, classification' 
       }, { status: 400 });
     }
 
@@ -71,6 +71,7 @@ export async function PUT(
         model,
         capacity,
         mediaController,
+        mediaType,
         classification,
         status,
         notes,

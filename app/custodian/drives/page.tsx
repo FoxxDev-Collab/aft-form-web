@@ -44,6 +44,7 @@ export default function DrivesPage() {
     model: '',
     capacity: '',
     mediaController: '',
+    mediaType: 'SSD',
     classification: 'UNCLASSIFIED',
     status: 'available',
     notes: ''
@@ -106,6 +107,7 @@ export default function DrivesPage() {
           model: '',
           capacity: '',
           mediaController: '',
+          mediaType: 'SSD',
           classification: 'UNCLASSIFIED',
           status: 'available',
           notes: ''
@@ -265,6 +267,22 @@ export default function DrivesPage() {
                 </div>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="mediaType">Media Type</Label>
+                <Select value={newDrive.mediaType} onValueChange={(value) => setNewDrive(prev => ({ ...prev, mediaType: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CD-R">CD-R (Compact Disc Recordable)</SelectItem>
+                    <SelectItem value="DVD-R">DVD-R (DVD Recordable)</SelectItem>
+                    <SelectItem value="DVD-RDL">DVD-RDL (DVD Recordable Dual Layer)</SelectItem>
+                    <SelectItem value="SSD">SSD (Solid State Drive)</SelectItem>
+                    <SelectItem value="SSD-T">SSD-T (Solid State Drive - Trusted)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="classification">Classification</Label>
@@ -419,6 +437,7 @@ export default function DrivesPage() {
                 <TableHead>Model</TableHead>
                 <TableHead>Capacity</TableHead>
                 <TableHead>Media Controller</TableHead>
+                <TableHead>Media Type</TableHead>
                 <TableHead>Classification</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Current User</TableHead>
@@ -432,6 +451,9 @@ export default function DrivesPage() {
                   <TableCell>{drive.model}</TableCell>
                   <TableCell>{drive.capacity}</TableCell>
                   <TableCell className="font-mono">{drive.mediaController}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">{drive.mediaType}</Badge>
+                  </TableCell>
                   <TableCell>
                     <Badge variant="outline">{drive.classification}</Badge>
                   </TableCell>
@@ -521,6 +543,22 @@ export default function DrivesPage() {
                     onChange={(e) => setEditingDrive(prev => prev ? ({ ...prev, mediaController: e.target.value }) : null)}
                   />
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-mediaType">Media Type</Label>
+                <Select value={editingDrive.mediaType} onValueChange={(value) => setEditingDrive(prev => prev ? ({ ...prev, mediaType: value }) : null)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CD-R">CD-R (Compact Disc Recordable)</SelectItem>
+                    <SelectItem value="DVD-R">DVD-R (DVD Recordable)</SelectItem>
+                    <SelectItem value="DVD-RDL">DVD-RDL (DVD Recordable Dual Layer)</SelectItem>
+                    <SelectItem value="SSD">SSD (Solid State Drive)</SelectItem>
+                    <SelectItem value="SSD-T">SSD-T (Solid State Drive - Trusted)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="grid grid-cols-2 gap-4">

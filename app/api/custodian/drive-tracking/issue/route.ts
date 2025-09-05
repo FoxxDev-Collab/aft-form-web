@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/auth-server';
 import { db } from '@/lib/db';
-import { driveInventory, driveTracking, aftAuditLog } from '@/lib/db/schema';
+import { driveInventory, driveTracking, aftAuditLog, users } from '@/lib/db/schema';
 import { eq, isNull, and } from 'drizzle-orm';
 
 export async function POST(request: NextRequest) {
@@ -67,41 +67,51 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
 
-    // Start transaction
-    const result = await db().transaction(async (tx) => {
-      // Create tracking record
-      const tracking = await tx.insert(driveTracking).values({
-        driveId,
-        userId,
-        custodianId: user.id,
-        sourceIS,
-        destinationIS,
-        issuedAt: now,
-        expectedReturnAt: expectedReturnAt ? new Date(expectedReturnAt) : null,
+    // Validate that the user exists
+    const targetUser = await db()
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    
+    if (targetUser.length === 0) {
+      return NextResponse.json({ 
+        error: 'Target user not found' 
+      }, { status: 400 });
+    }
+
+    // Create tracking record
+    const tracking = await db().insert(driveTracking).values({
+      driveId,
+      userId,
+      custodianId: user.id,
+      sourceIS,
+      destinationIS,
+      issuedAt: now,
+      expectedReturnAt: expectedReturnAt ? new Date(expectedReturnAt) : null,
+      status: 'issued',
+      issueNotes,
+      createdAt: now,
+    }).returning();
+
+    // Update drive status to issued
+    await db().update(driveInventory)
+      .set({ 
         status: 'issued',
-        issueNotes,
-        createdAt: now,
-      }).returning();
+        updatedAt: now 
+      })
+      .where(eq(driveInventory.id, driveId));
 
-      // Update drive status to issued
-      await tx.update(driveInventory)
-        .set({ 
-          status: 'issued',
-          updatedAt: now 
-        })
-        .where(eq(driveInventory.id, driveId));
-
-      // Create audit log entry
-      await tx.insert(aftAuditLog).values({
-        requestId: 0, // No specific request for drive tracking
-        userId: user.id,
-        action: 'drive_issued',
-        notes: `Drive ${drive[0].serialNumber} issued to user ${userId} for transfer from ${sourceIS} to ${destinationIS}`,
-        createdAt: now,
-      });
-
-      return tracking[0];
+    // Create audit log entry
+    await db().insert(aftAuditLog).values({
+      requestId: 0, // No specific request for drive tracking
+      userId: user.id,
+      action: 'drive_issued',
+      notes: `Drive ${drive[0].serialNumber} issued to user ${userId} for transfer from ${sourceIS} to ${destinationIS}`,
+      createdAt: now,
     });
+
+    const result = tracking[0];
 
     return NextResponse.json(result, { status: 201 });
     

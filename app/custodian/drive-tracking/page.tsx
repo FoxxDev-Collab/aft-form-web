@@ -197,7 +197,7 @@ export default function DriveTrackingPage() {
               Issue Drive
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
+          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Issue Drive</DialogTitle>
               <DialogDescription>
@@ -227,10 +227,13 @@ export default function DriveTrackingPage() {
                     <SelectTrigger>
                       <SelectValue placeholder="Select a user" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-w-[400px]">
                       {users.map((user) => (
                         <SelectItem key={user.id} value={user.id.toString()}>
-                          {user.firstName} {user.lastName} ({user.email})
+                          <div className="flex flex-col min-w-0 w-full">
+                            <span className="font-medium">{user.firstName} {user.lastName}</span>
+                            <span className="text-xs text-muted-foreground truncate">{user.email}</span>
+                          </div>
                         </SelectItem>
                       ))}
                     </SelectContent>

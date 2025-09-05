@@ -70,37 +70,34 @@ export async function POST(
 
     const now = new Date();
 
-    // Start transaction
-    const result = await db().transaction(async (tx) => {
-      // Update tracking record with return information
-      const updatedTracking = await tx.update(driveTracking)
-        .set({
-          returnedAt: now,
-          status: 'returned',
-          returnNotes,
-        })
-        .where(eq(driveTracking.id, trackingId))
-        .returning();
+    // Update tracking record with return information
+    const updatedTracking = await db().update(driveTracking)
+      .set({
+        returnedAt: now,
+        status: 'returned',
+        returnNotes,
+      })
+      .where(eq(driveTracking.id, trackingId))
+      .returning();
 
-      // Update drive status back to available
-      await tx.update(driveInventory)
-        .set({ 
-          status: 'available',
-          updatedAt: now 
-        })
-        .where(eq(driveInventory.id, tracking[0].driveId));
+    // Update drive status back to available
+    await db().update(driveInventory)
+      .set({ 
+        status: 'available',
+        updatedAt: now 
+      })
+      .where(eq(driveInventory.id, tracking[0].driveId));
 
-      // Create audit log entry
-      await tx.insert(aftAuditLog).values({
-        requestId: 0, // No specific request for drive tracking
-        userId: user.id,
-        action: 'drive_returned',
-        notes: `Drive ${drive[0].serialNumber} returned from user ${tracking[0].userId} after transfer from ${tracking[0].sourceIS} to ${tracking[0].destinationIS}${returnNotes ? '. Notes: ' + returnNotes : ''}`,
-        createdAt: now,
-      });
-
-      return updatedTracking[0];
+    // Create audit log entry
+    await db().insert(aftAuditLog).values({
+      requestId: 0, // No specific request for drive tracking
+      userId: user.id,
+      action: 'drive_returned',
+      notes: `Drive ${drive[0].serialNumber} returned from user ${tracking[0].userId} after transfer from ${tracking[0].sourceIS} to ${tracking[0].destinationIS}${returnNotes ? '. Notes: ' + returnNotes : ''}`,
+      createdAt: now,
     });
+
+    const result = updatedTracking[0];
 
     return NextResponse.json(result);
     

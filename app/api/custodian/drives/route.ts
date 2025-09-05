@@ -26,6 +26,7 @@ export async function GET() {
         model: driveInventory.model,
         capacity: driveInventory.capacity,
         mediaController: driveInventory.mediaController,
+        mediaType: driveInventory.mediaType,
         classification: driveInventory.classification,
         status: driveInventory.status,
         notes: driveInventory.notes,
@@ -83,12 +84,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { serialNumber, model, capacity, mediaController, classification, status, notes } = body;
+    const { serialNumber, model, capacity, mediaController, mediaType, classification, status, notes } = body;
 
     // Validate required fields
-    if (!serialNumber || !model || !capacity || !mediaController || !classification) {
+    if (!serialNumber || !model || !capacity || !mediaController || !mediaType || !classification) {
       return NextResponse.json({ 
-        error: 'Missing required fields: serialNumber, model, capacity, mediaController, classification' 
+        error: 'Missing required fields: serialNumber, model, capacity, mediaController, mediaType, classification' 
       }, { status: 400 });
     }
 
@@ -111,6 +112,7 @@ export async function POST(request: NextRequest) {
       model,
       capacity,
       mediaController,
+      mediaType,
       classification,
       status: status || 'available',
       notes,

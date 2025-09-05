@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Disc, HardDrive, ExternalLink } from 'lucide-react';
+import { Disc, HardDrive } from 'lucide-react';
 import { DriveInventory } from '@/lib/db/schema';
 
 interface FormData {
@@ -12,29 +11,41 @@ interface FormData {
   selectedDriveId?: number;
 }
 
+interface IssuedDrive extends DriveInventory {
+  userId: number;
+  userFirstName: string;
+  userLastName: string;
+  userEmail: string;
+  issuedAt: Date;
+  expectedReturnAt: Date | null;
+  sourceIS: string;
+  destinationIS: string;
+  mediaType: string;
+}
+
 interface MediaControlStepProps {
   data: FormData;
   updateData: (data: Partial<FormData>) => void;
 }
 
 export function MediaControlStep({ data, updateData }: MediaControlStepProps) {
-  const [availableDrives, setAvailableDrives] = useState<DriveInventory[]>([]);
+  const [issuedDrives, setIssuedDrives] = useState<IssuedDrive[]>([]);
   const [loadingDrives, setLoadingDrives] = useState(false);
 
   useEffect(() => {
-    fetchAvailableDrives();
+    fetchIssuedDrives();
   }, []);
 
-  const fetchAvailableDrives = async () => {
+  const fetchIssuedDrives = async () => {
     try {
       setLoadingDrives(true);
-      const response = await fetch('/api/custodian/drives/available');
+      const response = await fetch('/api/drives/issued');
       if (response.ok) {
         const drives = await response.json();
-        setAvailableDrives(drives);
+        setIssuedDrives(drives);
       }
     } catch (error) {
-      console.error('Error fetching available drives:', error);
+      console.error('Error fetching issued drives:', error);
     } finally {
       setLoadingDrives(false);
     }
@@ -66,17 +77,45 @@ export function MediaControlStep({ data, updateData }: MediaControlStepProps) {
         <CardContent className="space-y-6">
           <div>
             <Label htmlFor="mediaControlNumber">Media Control Number *</Label>
-            <Input
-              id="mediaControlNumber"
-              type="text"
-              placeholder="Enter media control number"
+            <Select
               value={data.mediaControlNumber}
-              onChange={(e) => handleInputChange('mediaControlNumber', e.target.value)}
-              required
-              className="mt-1"
-            />
+              onValueChange={(value) => {
+                // When a drive is selected, also set the selectedDriveId and auto-select media type
+                const selectedDrive = issuedDrives.find(d => d.mediaController === value);
+                if (selectedDrive) {
+                  handleInputChange('mediaControlNumber', value);
+                  handleInputChange('selectedDriveId', selectedDrive.id);
+                  // Auto-select media type from the drive's actual media type
+                  handleInputChange('mediaType', selectedDrive.mediaType);
+                } else {
+                  handleInputChange('mediaControlNumber', value);
+                }
+              }}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder={loadingDrives ? "Loading drives..." : "Select media control number"} />
+              </SelectTrigger>
+              <SelectContent>
+                {issuedDrives.length === 0 && !loadingDrives ? (
+                  <SelectItem value="no-drives" disabled>
+                    No drives currently issued. Contact the custodian to request a drive.
+                  </SelectItem>
+                ) : (
+                  issuedDrives.map((drive) => (
+                    <SelectItem key={drive.id} value={drive.mediaController}>
+                      <div className="flex flex-col min-w-0 w-full">
+                        <span className="font-medium">{drive.mediaController} - {drive.serialNumber}</span>
+                        <span className="text-xs text-muted-foreground">
+                          Issued to: {drive.userFirstName} {drive.userLastName} | {drive.capacity} | {drive.classification}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
             <p className="text-xs text-muted-foreground mt-1">
-              Unique identifier for tracking this physical media
+              Select from drives currently issued by the custodian. This determines your DTA assignment.
             </p>
           </div>
 
@@ -127,44 +166,6 @@ export function MediaControlStep({ data, updateData }: MediaControlStepProps) {
             </p>
           </div>
 
-          {/* Drive Selection - Only show for external drives (SSD types) */}
-          {(data.mediaType === 'SSD' || data.mediaType === 'SSD-T') && (
-            <div>
-              <Label htmlFor="selectedDriveId">Available Drive (Optional)</Label>
-              <Select
-                value={data.selectedDriveId?.toString() || ''}
-                onValueChange={(value) => handleInputChange('selectedDriveId', value ? parseInt(value) : 0)}
-              >
-                <SelectTrigger className="mt-1">
-                  <SelectValue placeholder={loadingDrives ? "Loading drives..." : "Select an available drive"} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">
-                    <div className="flex items-center gap-2">
-                      <ExternalLink className="w-4 h-4" />
-                      Use own external drive
-                    </div>
-                  </SelectItem>
-                  {availableDrives.map((drive) => (
-                    <SelectItem key={drive.id} value={drive.id.toString()}>
-                      <div className="flex items-center gap-2">
-                        <HardDrive className="w-4 h-4" />
-                        <div className="flex flex-col">
-                          <span>{drive.serialNumber} - {drive.model}</span>
-                          <span className="text-xs text-muted-foreground">
-                            {drive.capacity} | {drive.mediaController} | {drive.classification}
-                          </span>
-                        </div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground mt-1">
-                Select a custodian-managed drive or use your own external drive for this transfer
-              </p>
-            </div>
-          )}
         </CardContent>
       </Card>
 

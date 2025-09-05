@@ -69,6 +69,7 @@ export const driveInventory = sqliteTable('drive_inventory', {
   model: text('model').notNull(),
   capacity: text('capacity').notNull(), // e.g., "1TB", "500GB"
   mediaController: text('media_controller').notNull(), // e.g., "MC-001", "MC-002"
+  mediaType: text('media_type').notNull().default('SSD'), // CD-R, DVD-R, DVD-RDL, SSD, SSD-T
   classification: text('classification').notNull(), // UNCLASSIFIED, SECRET, etc.
   status: text('status').notNull().default('available'), // available, issued, maintenance, retired
   notes: text('notes'),
