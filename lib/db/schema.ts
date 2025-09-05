@@ -62,6 +62,20 @@ export const userRoles = sqliteTable('user_roles', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
 
+// Drive Inventory - Master list of all external drives
+export const driveInventory = sqliteTable('drive_inventory', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  serialNumber: text('serial_number').notNull().unique(),
+  model: text('model').notNull(),
+  capacity: text('capacity').notNull(), // e.g., "1TB", "500GB"
+  mediaController: text('media_controller').notNull(), // e.g., "MC-001", "MC-002"
+  classification: text('classification').notNull(), // UNCLASSIFIED, SECRET, etc.
+  status: text('status').notNull().default('available'), // available, issued, maintenance, retired
+  notes: text('notes'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
 // AFT Requests table - Main request information
 export const aftRequests = sqliteTable('aft_requests', {
   id: integer('id').primaryKey({ autoIncrement: true }),
@@ -111,6 +125,9 @@ export const aftRequests = sqliteTable('aft_requests', {
   transferMethod: text('transfer_method'),
   encryption: text('encryption'),
   compressionRequired: integer('compression_required', { mode: 'boolean' }),
+  
+  // Drive Selection (optional - for external media transfers)
+  selectedDriveId: integer('selected_drive_id').references(() => driveInventory.id),
   
   // Section 6: Schedule
   requestedStartDate: integer('requested_start_date', { mode: 'timestamp' }),
@@ -163,11 +180,32 @@ export const aftAuditLog = sqliteTable('aft_audit_log', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
 
+// Drive Issue/Return Tracking
+export const driveTracking = sqliteTable('drive_tracking', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  driveId: integer('drive_id').notNull().references(() => driveInventory.id),
+  userId: integer('user_id').notNull().references(() => users.id), // Who has the drive
+  custodianId: integer('custodian_id').notNull().references(() => users.id), // Who issued it
+  sourceIS: text('source_is').notNull(), // Source Information System
+  destinationIS: text('destination_is').notNull(), // Destination Information System
+  issuedAt: integer('issued_at', { mode: 'timestamp' }).notNull(),
+  expectedReturnAt: integer('expected_return_at', { mode: 'timestamp' }), // Optional expected return date
+  returnedAt: integer('returned_at', { mode: 'timestamp' }), // NULL if not yet returned
+  status: text('status').notNull().default('issued'), // issued, returned, overdue
+  issueNotes: text('issue_notes'),
+  returnNotes: text('return_notes'),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
 // Zod schemas for validation
 export const insertUserSchema = createInsertSchema(users);
 export const selectUserSchema = createSelectSchema(users);
 export const insertAftRequestSchema = createInsertSchema(aftRequests);
 export const selectAftRequestSchema = createSelectSchema(aftRequests);
+export const insertDriveInventorySchema = createInsertSchema(driveInventory);
+export const selectDriveInventorySchema = createSelectSchema(driveInventory);
+export const insertDriveTrackingSchema = createInsertSchema(driveTracking);
+export const selectDriveTrackingSchema = createSelectSchema(driveTracking);
 
 // Additional validation schemas
 export const loginSchema = z.object({
@@ -190,3 +228,7 @@ export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type AFTRequest = typeof aftRequests.$inferSelect;
 export type NewAFTRequest = typeof aftRequests.$inferInsert;
+export type DriveInventory = typeof driveInventory.$inferSelect;
+export type NewDriveInventory = typeof driveInventory.$inferInsert;
+export type DriveTracking = typeof driveTracking.$inferSelect;
+export type NewDriveTracking = typeof driveTracking.$inferInsert;

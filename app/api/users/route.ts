@@ -7,12 +7,15 @@ import { eq, desc, and } from 'drizzle-orm';
 
 export const runtime = 'nodejs';
 
-// GET /api/users - Get all users (admin only)
+// GET /api/users - Get all users (admin and media custodian)
 export async function GET(request: NextRequest) {
   try {
     const currentUser = await getCurrentUserFromRequest(request);
     
-    if (!currentUser || !isAdmin(currentUser)) {
+    // Allow admin users and media custodians to view users
+    const isMediaCustodian = currentUser?.roles?.includes('media_custodian') || currentUser?.primaryRole === 'media_custodian';
+    
+    if (!currentUser || (!isAdmin(currentUser) && !isMediaCustodian)) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 403 }

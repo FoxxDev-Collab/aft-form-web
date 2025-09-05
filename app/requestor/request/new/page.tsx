@@ -18,6 +18,7 @@ interface FormData {
   // Section I: Media Control Number and Media Type
   mediaControlNumber: string;
   mediaType: 'CD-R' | 'DVD-R' | 'DVD-RDL' | 'SSD' | 'SSD-T' | '';
+  selectedDriveId?: number;
   
   // Section II: Source/Destination Information
   sourceIS: string;
@@ -48,6 +49,7 @@ const initialFormData: FormData = {
   // Section I
   mediaControlNumber: '',
   mediaType: '',
+  selectedDriveId: undefined,
   
   // Section II
   sourceIS: '',

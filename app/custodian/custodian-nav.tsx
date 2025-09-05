@@ -24,6 +24,8 @@ import {
   Moon,
   Monitor,
   Archive,
+  HardDrive,
+  Truck,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
@@ -69,6 +71,8 @@ export function CustodianNav({ user }: CustodianNavProps) {
 
   const navItems = [
     { href: '/custodian', label: 'Dashboard', icon: Archive },
+    { href: '/custodian/drives', label: 'Drive Inventory', icon: HardDrive },
+    { href: '/custodian/drive-tracking', label: 'Drive Tracking', icon: Truck },
     { href: '/custodian/disposition', label: 'Media Disposition', icon: FileText },
     { href: '/custodian/history', label: 'Disposition History', icon: History },
   ];
