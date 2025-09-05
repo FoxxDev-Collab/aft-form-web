@@ -51,7 +51,7 @@ export function FileUpload({ requestId, onFilesChange, initialFiles = [], disabl
   };
 
   const getFileIcon = (mimeType: string) => {
-    if (mimeType.startsWith('image/')) return <Image className="w-4 h-4" aria-label="Image file" />;
+    if (mimeType.startsWith('image/')) return <Image className="w-4 h-4" />;
     if (mimeType.includes('pdf')) return <FileText className="w-4 h-4 text-red-500" />;
     if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) return <FileSpreadsheet className="w-4 h-4 text-green-500" />;
     if (mimeType.includes('zip') || mimeType.includes('archive')) return <Archive className="w-4 h-4 text-orange-500" />;
@@ -67,7 +67,9 @@ export function FileUpload({ requestId, onFilesChange, initialFiles = [], disabl
 
     const formData = new FormData();
     formData.append('file', file);
-    formData.append('requestId', requestId.toString());
+    if (requestId) {
+      formData.append('requestId', requestId.toString());
+    }
 
     try {
       const response = await fetch('/api/files/upload', {
