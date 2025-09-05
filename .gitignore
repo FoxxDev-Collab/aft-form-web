@@ -39,3 +39,33 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Database files
+/data/
+*.db
+*.sqlite
+*.sqlite3
+
+# Log files
+/logs/
+/pm2-logs/
+*.log
+*.log.*
+
+# PM2 files
+.pm2/
+pids/
+dump.pm2
+
+# Security - production environment files
+.env.production
+.env.staging
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
