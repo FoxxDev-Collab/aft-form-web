@@ -50,13 +50,41 @@ export async function GET(request: NextRequest) {
  * Extract client certificate from request headers
  * This depends on your reverse proxy/load balancer configuration
  */
-function extractClientCertificate(request: NextRequest): any {
+interface CertHeaders {
+  'x-ssl-client-cert': string | null;
+  'x-ssl-client-s-dn': string | null;
+  'x-ssl-client-i-dn': string | null;
+  'ssl-client-cert': string | null;
+  'ssl-client-s-dn': string | null;
+  'ssl-client-i-dn': string | null;
+  'x-ssl-client-serial': string | null;
+  'x-ssl-client-fingerprint': string | null;
+  'x-ssl-client-sha1': string | null;
+  'x-ssl-client-v-start': string | null;
+  'x-ssl-client-v-end': string | null;
+  'x-ssl-client-verify': string | null;
+  'x-ssl-client-der': string | null;
+  'x-client-cert': string | null;
+  // Mock certificate properties for development
+  mock?: boolean;
+  subject?: string;
+  issuer?: string;
+  serialNumber?: string;
+  fingerprint?: string;
+  notBefore?: string;
+  notAfter?: string;
+}
+
+function extractClientCertificate(request: NextRequest): CertHeaders {
   // Common headers used by reverse proxies for client certificates:
   const certHeaders = {
     // Apache/Nginx with SSL client certificate
     'x-ssl-client-cert': request.headers.get('x-ssl-client-cert'),
     'x-ssl-client-s-dn': request.headers.get('x-ssl-client-s-dn'), // Subject DN
     'x-ssl-client-i-dn': request.headers.get('x-ssl-client-i-dn'), // Issuer DN
+    'ssl-client-cert': request.headers.get('ssl-client-cert'),
+    'ssl-client-s-dn': request.headers.get('ssl-client-s-dn'),
+    'ssl-client-i-dn': request.headers.get('ssl-client-i-dn'),
     'x-ssl-client-serial': request.headers.get('x-ssl-client-serial'),
     'x-ssl-client-fingerprint': request.headers.get('x-ssl-client-fingerprint'),
     'x-ssl-client-verify': request.headers.get('x-ssl-client-verify'),
@@ -78,17 +106,45 @@ function extractClientCertificate(request: NextRequest): any {
     // For development/testing, return a mock certificate
     if (process.env.NODE_ENV === 'development') {
       return {
+        'x-ssl-client-cert': null,
+        'x-ssl-client-s-dn': null,
+        'x-ssl-client-i-dn': null,
+        'ssl-client-cert': null,
+        'ssl-client-s-dn': null,
+        'ssl-client-i-dn': null,
+        'x-ssl-client-serial': null,
+        'x-ssl-client-fingerprint': null,
+        'x-ssl-client-sha1': null,
+        'x-ssl-client-v-start': null,
+        'x-ssl-client-v-end': null,
+        'x-ssl-client-verify': null,
+        'x-ssl-client-der': null,
+        'x-client-cert': null,
         mock: true,
         subject: 'CN=DOE.JOHN.1234567890,OU=PKI,OU=DoD,O=U.S. Government,C=US',
         issuer: 'CN=DoD CA-59,OU=PKI,OU=DoD,O=U.S. Government,C=US',
         serialNumber: '1234567890ABCDEF',
         fingerprint: 'AA:BB:CC:DD:EE:FF:11:22:33:44:55:66:77:88:99:00:AA:BB:CC:DD',
         notBefore: '2024-01-01T00:00:00Z',
-        notAfter: '2027-01-01T00:00:00Z',
-        verify: 'SUCCESS'
+        notAfter: '2027-01-01T00:00:00Z'
       };
     }
-    return null;
+    return {
+      'x-ssl-client-cert': null,
+      'x-ssl-client-s-dn': null,
+      'x-ssl-client-i-dn': null,
+      'ssl-client-cert': null,
+      'ssl-client-s-dn': null,
+      'ssl-client-i-dn': null,
+      'x-ssl-client-serial': null,
+      'x-ssl-client-fingerprint': null,
+      'x-ssl-client-sha1': null,
+      'x-ssl-client-v-start': null,
+      'x-ssl-client-v-end': null,
+      'x-ssl-client-verify': null,
+      'x-ssl-client-der': null,
+      'x-client-cert': null
+    };
   }
 
   return certHeaders;
@@ -97,7 +153,7 @@ function extractClientCertificate(request: NextRequest): any {
 /**
  * Parse certificate information from headers
  */
-async function parseCertificateHeaders(certHeaders: any): Promise<{
+async function parseCertificateHeaders(certHeaders: CertHeaders): Promise<{
   subject: string;
   issuer: string;
   serialNumber: string;
@@ -111,15 +167,15 @@ async function parseCertificateHeaders(certHeaders: any): Promise<{
   // Handle mock certificate for development
   if (certHeaders.mock) {
     return {
-      subject: certHeaders.subject,
-      issuer: certHeaders.issuer,
-      serialNumber: certHeaders.serialNumber,
-      thumbprint: certHeaders.fingerprint.replace(/:/g, ''),
-      notBefore: certHeaders.notBefore,
-      notAfter: certHeaders.notAfter,
-      email: extractEmailFromSubject(certHeaders.subject),
+      subject: certHeaders.subject || '',
+      issuer: certHeaders.issuer || '',
+      serialNumber: certHeaders.serialNumber || '',
+      thumbprint: (certHeaders.fingerprint || '').replace(/:/g, ''),
+      notBefore: certHeaders.notBefore || '',
+      notAfter: certHeaders.notAfter || '',
+      email: extractEmailFromSubject(certHeaders.subject || ''),
       isValid: true,
-      isDod: isDoDCertificate(certHeaders.subject, certHeaders.issuer)
+      isDod: isDoDCertificate(certHeaders.subject || '', certHeaders.issuer || '')
     };
   }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardDescription, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { FileText, Settings, BookOpen } from 'lucide-react';
+import { FileText, Settings } from 'lucide-react';
 import { UserManagement } from '@/app/admin/user-management';
 import { AdminRequestsView } from '@/app/admin/admin-requests-view';
 import { AdminDashboard } from '@/app/admin/admin-dashboard';

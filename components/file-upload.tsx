@@ -51,7 +51,7 @@ export function FileUpload({ requestId, onFilesChange, initialFiles = [], disabl
   };
 
   const getFileIcon = (mimeType: string) => {
-    if (mimeType.startsWith('image/')) return <Image className="w-4 h-4" />;
+    if (mimeType.startsWith('image/')) return <Image className="w-4 h-4" alt="" />;
     if (mimeType.includes('pdf')) return <FileText className="w-4 h-4 text-red-500" />;
     if (mimeType.includes('spreadsheet') || mimeType.includes('excel')) return <FileSpreadsheet className="w-4 h-4 text-green-500" />;
     if (mimeType.includes('zip') || mimeType.includes('archive')) return <Archive className="w-4 h-4 text-orange-500" />;

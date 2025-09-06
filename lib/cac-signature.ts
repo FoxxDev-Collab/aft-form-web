@@ -36,20 +36,6 @@ export class CACSignatureService {
       // Use the Credential Management API for certificate selection
       if ('credentials' in navigator) {
         // This will prompt the user to select a certificate
-        const credential = await navigator.credentials.get({
-          publicKey: {
-            challenge: new Uint8Array(32),
-            rp: { name: 'AFT System' },
-            user: {
-              id: new Uint8Array(16),
-              name: 'user@example.com',
-              displayName: 'User'
-            },
-            pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
-            timeout: 60000,
-            userVerification: 'required'
-          }
-        });
       }
 
       // Alternative method: Direct certificate store access (browser-specific)
@@ -115,8 +101,8 @@ export class CACSignatureService {
    * Sign data with private key (requires CAC middleware)
    */
   private static async signWithPrivateKey(
-    data: ArrayBuffer, 
-    certificate: CACCertificate
+    _data: ArrayBuffer, 
+    _certificate: CACCertificate
   ): Promise<ArrayBuffer> {
     // This is where actual CAC integration would happen
     // Real implementation would use:
@@ -164,7 +150,7 @@ export class CACSignatureService {
   /**
    * Parse X.509 certificate from ArrayBuffer
    */
-  static parseCertificate(certBuffer: ArrayBuffer): Partial<CACCertificate> {
+  static parseCertificate(_certBuffer: ArrayBuffer): Partial<CACCertificate> {
     // This would use a proper ASN.1/X.509 parser in production
     // For now, return a placeholder
     return {

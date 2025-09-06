@@ -1,14 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { userGuides, users } from '@/lib/db/schema';
-import { eq, and } from 'drizzle-orm';
+import { userGuides, users, type NewUserGuide } from '@/lib/db/schema';
+import { eq } from 'drizzle-orm';
 import { getCurrentUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 
 // GET /api/user-guides/[id] - Get specific guide
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUserFromRequest();
@@ -16,7 +16,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
     
     const [guide] = await db
       .select({
@@ -59,7 +59,7 @@ export async function GET(
 // PUT /api/user-guides/[id] - Update guide (admin only)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUserFromRequest();
@@ -67,7 +67,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     const updateGuideSchema = z.object({
       title: z.string().min(1).optional(),
@@ -92,7 +92,7 @@ export async function PUT(
       return NextResponse.json({ error: 'Guide not found' }, { status: 404 });
     }
 
-    const updateData: any = {
+    const updateData: Partial<NewUserGuide> = {
       ...validatedData,
       updatedBy: user.id,
       updatedAt: new Date(),
@@ -128,7 +128,7 @@ export async function PUT(
 // DELETE /api/user-guides/[id] - Delete guide (admin only)
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUserFromRequest();
@@ -136,7 +136,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { id } = params;
+    const { id } = await params;
 
     // Check if guide exists
     const [existingGuide] = await db

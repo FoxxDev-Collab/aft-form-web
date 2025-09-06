@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     // Only admins can see unpublished guides
     const canSeeUnpublished = user.role === 'admin' && includeUnpublished;
 
-    let whereConditions = [];
+    const whereConditions = [];
     
     // Filter by publication status
     if (!canSeeUnpublished) {

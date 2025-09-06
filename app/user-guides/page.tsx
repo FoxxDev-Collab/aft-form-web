@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,20 +8,18 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   BookOpen, 
-  User, 
   CheckCircle, 
-  FileText, 
   Send, 
   Archive,
   Search,
   Clock,
   Shield,
   Users,
-  HardDrive,
   UserCheck,
   Database,
   ArrowRight,
-  Loader2
+  Loader2,
+  type LucideIcon
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -38,7 +36,7 @@ interface Guide {
   createdByLastName: string;
 }
 
-const roleIcons: Record<string, any> = {
+const roleIcons: Record<string, LucideIcon> = {
   requestor: Send,
   approver: CheckCircle,
   dao: Shield,
@@ -85,7 +83,7 @@ export default function UserGuidesPage() {
 
   useEffect(() => {
     filterGuides();
-  }, [guides, searchTerm, selectedRole]);
+  }, [filterGuides]);
 
   const fetchGuides = async () => {
     try {
@@ -107,7 +105,7 @@ export default function UserGuidesPage() {
     }
   };
 
-  const filterGuides = () => {
+  const filterGuides = useCallback(() => {
     let filtered = guides;
 
     // Filter by search term
@@ -128,7 +126,7 @@ export default function UserGuidesPage() {
     }
 
     setFilteredGuides(filtered);
-  };
+  }, [guides, searchTerm, selectedRole]);
 
   const getRoleIcon = (role: string | null) => {
     if (!role) return BookOpen;

@@ -10,10 +10,11 @@ import { CheckCircle, XCircle, FileSignature } from 'lucide-react';
 import { CACSignatureComponent } from '@/components/cac-signature';
 import { DigitalSignature } from '@/lib/cac-signature';
 import { toast } from 'sonner';
+import { type AFTRequest } from '@/lib/db/schema';
 
 interface ApprovalWithSignatureProps {
   requestId: number;
-  requestData: any; // AFT request data
+  requestData: AFTRequest;
   stepType: 'dao_approval' | 'approver_approval' | 'cpso_approval' | 'dta_completion' | 'sme_signature' | 'custodian_disposition';
   title: string;
   description?: string;

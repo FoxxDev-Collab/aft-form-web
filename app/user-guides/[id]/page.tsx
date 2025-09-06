@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +16,8 @@ import {
   Users,
   Archive,
   Database,
-  UserCheck
+  UserCheck,
+  type LucideIcon
 } from 'lucide-react';
 import Link from 'next/link';
 import { MarkdownRenderer } from '@/components/markdown-renderer';
@@ -35,7 +36,7 @@ interface Guide {
   createdByLastName: string;
 }
 
-const roleIcons: Record<string, any> = {
+const roleIcons: Record<string, LucideIcon> = {
   requestor: Send,
   approver: CheckCircle,
   dao: Shield,
@@ -73,11 +74,7 @@ export default function UserGuidePage({ params }: { params: { id: string } }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchGuide();
-  }, [params.id]);
-
-  const fetchGuide = async () => {
+  const fetchGuide = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/user-guides/${params.id}`);
@@ -98,7 +95,11 @@ export default function UserGuidePage({ params }: { params: { id: string } }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    fetchGuide();
+  }, [fetchGuide]);
 
   const getRoleIcon = (role: string | null) => {
     if (!role) return BookOpen;

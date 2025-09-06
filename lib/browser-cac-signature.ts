@@ -67,7 +67,7 @@ export class BrowserCACService {
               certificate: new ArrayBuffer(0), // Server provides cert info
               email: certInfo.email
             });
-          } catch (e) {
+          } catch {
             reject(new Error('Failed to parse certificate information'));
           }
         } else {
@@ -195,7 +195,7 @@ export class BrowserCACService {
           message: 'CAC middleware not available'
         };
       }
-    } catch (error) {
+    } catch {
       return {
         available: false,
         message: 'CAC not detected. Please ensure card is inserted and middleware is running.'

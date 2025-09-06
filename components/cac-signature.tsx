@@ -3,14 +3,12 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Shield, 
-  CheckCircle, 
   AlertCircle, 
   Loader2, 
   CreditCard,
@@ -29,7 +27,7 @@ interface CACSignatureProps {
 }
 
 export function CACSignatureComponent({
-  requestId,
+  requestId: _requestId,
   stepType,
   dataToSign,
   reason = '',
@@ -37,7 +35,6 @@ export function CACSignatureComponent({
   onSignatureError,
   disabled = false
 }: CACSignatureProps) {
-  const [certificates, setCertificates] = useState<CACCertificate[]>([]);
   const [selectedCert, setSelectedCert] = useState<CACCertificate | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [cacAvailable, setCacAvailable] = useState<{ available: boolean; message: string } | null>(null);

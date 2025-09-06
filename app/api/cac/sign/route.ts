@@ -68,7 +68,15 @@ export async function POST(request: NextRequest) {
 /**
  * Extract client certificate information
  */
-function extractClientCertificate(request: NextRequest): any {
+interface ClientCertInfo {
+  subject: string | null;
+  issuer: string | null;
+  fingerprint: string | null;
+  serialNumber: string | null;
+  cert: string | null;
+}
+
+function extractClientCertificate(request: NextRequest): ClientCertInfo | null {
   const certHeaders = {
     subject: request.headers.get('x-ssl-client-s-dn'),
     issuer: request.headers.get('x-ssl-client-i-dn'),
@@ -86,12 +94,18 @@ function extractClientCertificate(request: NextRequest): any {
       subject: 'CN=DOE.JOHN.1234567890,OU=PKI,OU=DoD,O=U.S. Government,C=US',
       issuer: 'CN=DoD CA-59,OU=PKI,OU=DoD,O=U.S. Government,C=US',
       fingerprint: 'AABBCCDDEEFF112233445566778899AAABBCCDDD',
-      serial: '1234567890ABCDEF',
-      verify: 'SUCCESS'
+      serialNumber: '1234567890ABCDEF',
+      cert: null
     };
   }
 
-  return hasCert ? certHeaders : null;
+  return hasCert ? {
+    subject: certHeaders.subject,
+    issuer: certHeaders.issuer,
+    fingerprint: certHeaders.fingerprint,
+    serialNumber: certHeaders.serial,
+    cert: request.headers.get('x-ssl-client-cert')
+  } : null;
 }
 
 /**

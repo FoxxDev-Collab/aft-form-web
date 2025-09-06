@@ -13,8 +13,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
-import { User, Lock, Shield, ArrowLeft } from 'lucide-react';
+import { User, Lock, ArrowLeft } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -87,7 +86,7 @@ export function UserProfile({ user }: UserProfileProps) {
         const response = await fetch('/api/profile/roles');
         if (response.ok) {
           const roles = await response.json();
-          setUserRoles(roles.map((r: any) => r.role));
+          setUserRoles(roles.map((r: { role: string }) => r.role));
         }
       } catch {
         console.error('Failed to fetch user roles');

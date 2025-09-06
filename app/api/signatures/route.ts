@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCurrentUserFromRequest } from '@/lib/auth-server';
 import { db } from '@/lib/db/server';
-import { cacSignatures, aftRequests } from '@/lib/db/schema';
+import { cacSignatures, aftRequests, type AFTRequest } from '@/lib/db/schema';
+import { type AuthUser } from '@/lib/auth-server';
 import { eq, and } from 'drizzle-orm';
 import { z } from 'zod';
 
@@ -210,11 +211,11 @@ export async function GET(request: NextRequest) {
  * Verify if user is authorized for the given signature step
  */
 async function verifyStepAuthorization(
-  user: any, 
+  user: AuthUser, 
   stepType: string, 
-  aftRequest: any
+  aftRequest: AFTRequest
 ): Promise<boolean> {
-  const userRoles = [user.primaryRole, ...(user.roles || [])];
+  const userRoles = [user.primaryRole || user.role, ...(user.roles || [])];
   
   switch (stepType) {
     case 'dao_approval':
