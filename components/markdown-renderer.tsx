@@ -7,7 +7,8 @@ import rehypeSanitize from 'rehype-sanitize';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { tomorrow } from 'react-syntax-highlighter/dist/esm/styles/prism';
 
-// Use proper react-markdown component types
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type CodeComponentProps = any;
 
 interface MarkdownRendererProps {
   content: string;
@@ -21,11 +22,11 @@ export function MarkdownRenderer({ content, className = '' }: MarkdownRendererPr
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw, rehypeSanitize]}
         components={{
-          code({ inline, className, children, ...props }: { inline?: boolean; className?: string; children?: React.ReactNode; [key: string]: unknown }) {
+          code({ inline, className, children, ...props }: CodeComponentProps) {
             const match = /language-(\w+)/.exec(className || '');
             return !inline && match ? (
               <SyntaxHighlighter
-                style={tomorrow as unknown}
+                style={tomorrow as never}
                 language={match[1]}
                 PreTag="div"
                 className="rounded-md"

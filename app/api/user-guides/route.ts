@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { userGuides, users } from '@/lib/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { userGuides, users, type UserRoleType } from '@/lib/db/schema';
+import { eq, and, desc, isNull } from 'drizzle-orm';
 import { getCurrentUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
 
@@ -31,12 +31,12 @@ export async function GET(request: NextRequest) {
     if (role) {
       whereConditions.push(
         role === 'all' 
-          ? eq(userGuides.role, null) 
-          : eq(userGuides.role, role)
+          ? isNull(userGuides.role) 
+          : eq(userGuides.role, role as UserRoleType)
       );
     }
 
-    const guides = await db
+    const guides = await db()
       .select({
         id: userGuides.id,
         title: userGuides.title,
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     const validatedData = createGuideSchema.parse(body);
 
     // Check if guide ID already exists
-    const existingGuide = await db
+    const existingGuide = await db()
       .select()
       .from(userGuides)
       .where(eq(userGuides.id, validatedData.id))
@@ -99,11 +99,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const [newGuide] = await db
+    const [newGuide] = await db()
       .insert(userGuides)
       .values({
         ...validatedData,
-        role: validatedData.role === 'all' ? null : validatedData.role,
+        role: validatedData.role === 'all' ? null : (validatedData.role as UserRoleType),
         createdBy: user.id,
         updatedBy: user.id,
       })
@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }

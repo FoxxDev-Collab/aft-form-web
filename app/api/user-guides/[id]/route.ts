@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { userGuides, users, type NewUserGuide } from '@/lib/db/schema';
+import { userGuides, users, type NewUserGuide, type UserRoleType } from '@/lib/db/schema';
 import { eq } from 'drizzle-orm';
 import { getCurrentUserFromRequest } from '@/lib/auth';
 import { z } from 'zod';
@@ -18,7 +18,7 @@ export async function GET(
 
     const { id } = await params;
     
-    const [guide] = await db
+    const [guide] = await db()
       .select({
         id: userGuides.id,
         title: userGuides.title,
@@ -82,7 +82,7 @@ export async function PUT(
     const validatedData = updateGuideSchema.parse(body);
 
     // Check if guide exists
-    const [existingGuide] = await db
+    const [existingGuide] = await db()
       .select()
       .from(userGuides)
       .where(eq(userGuides.id, id))
@@ -92,17 +92,20 @@ export async function PUT(
       return NextResponse.json({ error: 'Guide not found' }, { status: 404 });
     }
 
+    const { role, ...otherData } = validatedData;
     const updateData: Partial<NewUserGuide> = {
-      ...validatedData,
+      ...otherData,
       updatedBy: user.id,
       updatedAt: new Date(),
     };
 
-    if (validatedData.role === 'all') {
+    if (role === 'all') {
       updateData.role = null;
+    } else if (role) {
+      updateData.role = role as UserRoleType; // Type assertion for role
     }
 
-    const [updatedGuide] = await db
+    const [updatedGuide] = await db()
       .update(userGuides)
       .set(updateData)
       .where(eq(userGuides.id, id))
@@ -112,7 +115,7 @@ export async function PUT(
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation failed', details: error.errors },
+        { error: 'Validation failed', details: error.issues },
         { status: 400 }
       );
     }
@@ -139,7 +142,7 @@ export async function DELETE(
     const { id } = await params;
 
     // Check if guide exists
-    const [existingGuide] = await db
+    const [existingGuide] = await db()
       .select()
       .from(userGuides)
       .where(eq(userGuides.id, id))
@@ -149,7 +152,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Guide not found' }, { status: 404 });
     }
 
-    await db.delete(userGuides).where(eq(userGuides.id, id));
+    await db().delete(userGuides).where(eq(userGuides.id, id));
 
     return NextResponse.json({ message: 'Guide deleted successfully' });
   } catch (error) {
