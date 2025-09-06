@@ -24,7 +24,8 @@ import {
   Sun,
   Moon,
   Monitor,
-  Shield
+  Shield,
+  BookOpen
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
@@ -156,10 +157,19 @@ export function ApproverNav({ user }: ApproverNavProps) {
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Account Settings</span>
+                <DropdownMenuItem asChild>
+                  <Link href="/profile">
+                    <Settings className="mr-2 h-4 w-4" />
+                    <span>Account Settings</span>
+                  </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/user-guides">
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    <span>User Guides</span>
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />
                   <span>Sign out</span>

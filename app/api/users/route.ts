@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
       isActive: users.isActive,
       createdAt: users.createdAt,
       updatedAt: users.updatedAt,
-    }).from(users).orderBy(desc(users.createdAt));
+    }).from(users).where(eq(users.isActive, true)).orderBy(desc(users.createdAt));
 
     // Get roles for each user
     const usersWithRoles = await Promise.all(

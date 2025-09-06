@@ -67,9 +67,9 @@ export async function POST(request: NextRequest) {
 
     const now = new Date();
 
-    // Validate that the user exists
+    // Validate that the user exists and is active
     const targetUser = await db()
-      .select({ id: users.id })
+      .select({ id: users.id, isActive: users.isActive })
       .from(users)
       .where(eq(users.id, userId))
       .limit(1);
@@ -77,6 +77,12 @@ export async function POST(request: NextRequest) {
     if (targetUser.length === 0) {
       return NextResponse.json({ 
         error: 'Target user not found' 
+      }, { status: 400 });
+    }
+
+    if (!targetUser[0].isActive) {
+      return NextResponse.json({ 
+        error: 'Cannot issue drive to inactive user' 
       }, { status: 400 });
     }
 

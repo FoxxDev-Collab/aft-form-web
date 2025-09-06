@@ -1,5 +1,5 @@
 import { db } from '../lib/db';
-import { users, userRoles, UserRole } from '../lib/db/schema';
+import { users, userRoles, driveInventory, UserRole } from '../lib/db/schema';
 import { eq } from 'drizzle-orm';
 import bcrypt from 'bcryptjs';
 
@@ -8,39 +8,15 @@ async function seedDatabase() {
   
   try {
     const database = db();
-    // Create 2 of each type of user account
+    // Demo users for team demo
     const userSeeds = [
-      // 2 Admins
-      { email: 'admin1@aft.gov', firstName: 'Alice', lastName: 'Admin', role: UserRole.ADMIN, organization: 'AFT System' },
-      { email: 'admin2@aft.gov', firstName: 'Bob', lastName: 'Administrator', role: UserRole.ADMIN, organization: 'AFT System' },
-      
-      // 2 Requestors
-      { email: 'requester1@contractor.com', firstName: 'Charlie', lastName: 'Requester', role: UserRole.REQUESTOR, organization: 'ABC Contractor Inc' },
-      { email: 'requester2@contractor.com', firstName: 'Diana', lastName: 'RequestMaker', role: UserRole.REQUESTOR, organization: 'XYZ Defense Corp' },
-      
-      // 2 DAOs
-      { email: 'dao1@aft.gov', firstName: 'Edward', lastName: 'Authorizer', role: UserRole.DAO, organization: 'AFT Security' },
-      { email: 'dao2@aft.gov', firstName: 'Fiona', lastName: 'Official', role: UserRole.DAO, organization: 'AFT Operations' },
-      
-      // 2 Approvers
-      { email: 'approver1@aft.gov', firstName: 'George', lastName: 'SecurityMgr', role: UserRole.APPROVER, organization: 'AFT InfoSec' },
-      { email: 'approver2@aft.gov', firstName: 'Helen', lastName: 'InfoSecOfficer', role: UserRole.APPROVER, organization: 'AFT Cyber' },
-      
-      // 2 CPSOs
-      { email: 'cpso1@aft.gov', firstName: 'Ian', lastName: 'ContractorSec', role: UserRole.CPSO, organization: 'AFT Security' },
-      { email: 'cpso2@aft.gov', firstName: 'Jane', lastName: 'ProgramSec', role: UserRole.CPSO, organization: 'AFT Oversight' },
-      
-      // 2 DTAs
-      { email: 'dta1@aft.gov', firstName: 'Kevin', lastName: 'TransferAgent', role: UserRole.DTA, organization: 'AFT Data' },
-      { email: 'dta2@aft.gov', firstName: 'Laura', lastName: 'DataAgent', role: UserRole.DTA, organization: 'AFT Transfer' },
-      
-      // 2 SMEs
-      { email: 'sme1@aft.gov', firstName: 'Mark', lastName: 'Subject', role: UserRole.SME, organization: 'AFT Technical' },
-      { email: 'sme2@aft.gov', firstName: 'Nancy', lastName: 'Expert', role: UserRole.SME, organization: 'AFT Analysis' },
-      
-      // 2 Media Custodians
-      { email: 'custodian1@aft.gov', firstName: 'Oliver', lastName: 'MediaKeeper', role: UserRole.MEDIA_CUSTODIAN, organization: 'AFT Storage' },
-      { email: 'custodian2@aft.gov', firstName: 'Patricia', lastName: 'DataCustodian', role: UserRole.MEDIA_CUSTODIAN, organization: 'AFT Archive' }
+      { email: 'admin@cyber.mil', firstName: 'Admin', lastName: 'User', role: UserRole.ADMIN, organization: 'Cyber Command' },
+      { email: 'daniel.farrel@cyber.mil', firstName: 'Daniel', lastName: 'Farrell', role: UserRole.REQUESTOR, organization: 'Cyber Command' },
+      { email: 'benji.tran@cyber.mil', firstName: 'Benji', lastName: 'Tran', role: UserRole.DTA, organization: 'Cyber Command' },
+      { email: 'joel.haas@cyber.mil', firstName: 'Joel', lastName: 'Haas', role: UserRole.APPROVER, organization: 'Cyber Command' },
+      { email: 'chad.quin@cyber.mil', firstName: 'Chad', lastName: 'Quin', role: UserRole.CPSO, organization: 'Cyber Command' },
+      { email: 'alex.nichols@cyber.mil', firstName: 'Alex', lastName: 'Nichols', role: UserRole.SME, organization: 'Cyber Command' },
+      { email: 'chris.arm@cyber.mil', firstName: 'Chris', lastName: 'Arm', role: UserRole.MEDIA_CUSTODIAN, organization: 'Cyber Command' }
     ];
 
     for (const userData of userSeeds) {
@@ -77,8 +53,56 @@ async function seedDatabase() {
       console.log(`✓ Created ${userData.role}: ${userData.email}`);
     }
 
+    // Seed drive inventory - 2 of each media type
+    const driveSeeds = [
+      // CD-R drives
+      { serialNumber: 'CDR-001', model: 'Sony CD-R 700MB', capacity: '700MB', mediaController: 'MC-001', mediaType: 'CD-R', classification: 'UNCLASSIFIED' },
+      { serialNumber: 'CDR-002', model: 'Sony CD-R 700MB', capacity: '700MB', mediaController: 'MC-002', mediaType: 'CD-R', classification: 'UNCLASSIFIED' },
+      
+      // DVD-R drives
+      { serialNumber: 'DVDR-001', model: 'Verbatim DVD-R 4.7GB', capacity: '4.7GB', mediaController: 'MC-003', mediaType: 'DVD-R', classification: 'UNCLASSIFIED' },
+      { serialNumber: 'DVDR-002', model: 'Verbatim DVD-R 4.7GB', capacity: '4.7GB', mediaController: 'MC-004', mediaType: 'DVD-R', classification: 'UNCLASSIFIED' },
+      
+      // DVD-RDL drives
+      { serialNumber: 'DVDRDL-001', model: 'Verbatim DVD+R DL 8.5GB', capacity: '8.5GB', mediaController: 'MC-005', mediaType: 'DVD-RDL', classification: 'UNCLASSIFIED' },
+      { serialNumber: 'DVDRDL-002', model: 'Verbatim DVD+R DL 8.5GB', capacity: '8.5GB', mediaController: 'MC-006', mediaType: 'DVD-RDL', classification: 'UNCLASSIFIED' },
+      
+      // SSD drives
+      { serialNumber: 'SSD-001', model: 'Samsung T7 Portable SSD', capacity: '1TB', mediaController: 'MC-007', mediaType: 'SSD', classification: 'UNCLASSIFIED' },
+      { serialNumber: 'SSD-002', model: 'Samsung T7 Portable SSD', capacity: '1TB', mediaController: 'MC-008', mediaType: 'SSD', classification: 'UNCLASSIFIED' },
+      
+      // SSD-T drives (Tactical)
+      { serialNumber: 'SSDT-001', model: 'IronKey D500S Tactical SSD', capacity: '500GB', mediaController: 'MC-009', mediaType: 'SSD-T', classification: 'SECRET' },
+      { serialNumber: 'SSDT-002', model: 'IronKey D500S Tactical SSD', capacity: '500GB', mediaController: 'MC-010', mediaType: 'SSD-T', classification: 'SECRET' }
+    ];
+
+    for (const driveData of driveSeeds) {
+      // Check if drive already exists
+      const existingDrive = await database.select().from(driveInventory).where(eq(driveInventory.serialNumber, driveData.serialNumber)).limit(1);
+      
+      if (existingDrive.length > 0) {
+        console.log(`⚠️  Drive already exists: ${driveData.serialNumber}`);
+        continue;
+      }
+
+      await database.insert(driveInventory).values({
+        serialNumber: driveData.serialNumber,
+        model: driveData.model,
+        capacity: driveData.capacity,
+        mediaController: driveData.mediaController,
+        mediaType: driveData.mediaType,
+        classification: driveData.classification,
+        status: 'available',
+        notes: 'Demo drive for team testing',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      console.log(`✓ Created ${driveData.mediaType} drive: ${driveData.serialNumber}`);
+    }
+
     console.log('\n🎉 Database seeding completed successfully!');
-    console.log(`📊 Created ${userSeeds.length} users across ${Object.keys(UserRole).length} roles`);
+    console.log(`📊 Created ${userSeeds.length} demo users and ${driveSeeds.length} drives for team demo`);
     console.log('🔑 All users have password: apples@@22');
 
   } catch (error) {

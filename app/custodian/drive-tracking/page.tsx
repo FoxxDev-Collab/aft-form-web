@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -43,7 +43,7 @@ export default function DriveTrackingPage() {
   const [availableDrives, setAvailableDrives] = useState<DriveInventory[]>([]);
   const [users, setUsers] = useState<UserType[]>([]);
   const [loading, setLoading] = useState(true);
-  const [issueDialogOpen, setIssueDialogOpen] = useState(false);
+  const [showIssueForm, setShowIssueForm] = useState(false);
   const [returnDialogOpen, setReturnDialogOpen] = useState(false);
   const [returningIssue, setReturningIssue] = useState<DriveTrackingWithDetails | null>(null);
   const [returnNotes, setReturnNotes] = useState('');
@@ -105,7 +105,7 @@ export default function DriveTrackingPage() {
       });
 
       if (response.ok) {
-        setIssueDialogOpen(false);
+        setShowIssueForm(false);
         setIssueForm({
           driveId: 0,
           userId: 0,
@@ -190,22 +190,24 @@ export default function DriveTrackingPage() {
           <h1 className="text-3xl font-bold">Drive Tracking</h1>
           <p className="text-muted-foreground">Track drive issues and returns</p>
         </div>
-        <Dialog open={issueDialogOpen} onOpenChange={setIssueDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Upload className="w-4 h-4 mr-2" />
-              Issue Drive
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Issue Drive</DialogTitle>
-              <DialogDescription>
-                Issue a drive to a user for data transfer
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+        <Button onClick={() => setShowIssueForm(!showIssueForm)}>
+          <Upload className="w-4 h-4 mr-2" />
+          {showIssueForm ? 'Cancel Issue' : 'Issue Drive'}
+        </Button>
+      </div>
+
+      {/* Issue Form */}
+      {showIssueForm && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Issue Drive</CardTitle>
+            <CardDescription>
+              Issue a drive to a user for data transfer
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="driveId">Select Drive</Label>
                   <Select value={issueForm.driveId.toString()} onValueChange={(value) => setIssueForm(prev => ({ ...prev, driveId: parseInt(value) }))}>
@@ -227,13 +229,10 @@ export default function DriveTrackingPage() {
                     <SelectTrigger>
                       <SelectValue placeholder="Select a user" />
                     </SelectTrigger>
-                    <SelectContent className="max-w-[400px]">
+                    <SelectContent>
                       {users.map((user) => (
                         <SelectItem key={user.id} value={user.id.toString()}>
-                          <div className="flex flex-col min-w-0 w-full">
-                            <span className="font-medium">{user.firstName} {user.lastName}</span>
-                            <span className="text-xs text-muted-foreground truncate">{user.email}</span>
-                          </div>
+                          {user.firstName} {user.lastName} ({user.email})
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -241,7 +240,7 @@ export default function DriveTrackingPage() {
                 </div>
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="sourceIS">Source IS</Label>
                   <Input
@@ -262,36 +261,40 @@ export default function DriveTrackingPage() {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="expectedReturnAt">Expected Return Date (Optional)</Label>
-                <Input
-                  id="expectedReturnAt"
-                  type="datetime-local"
-                  value={issueForm.expectedReturnAt}
-                  onChange={(e) => setIssueForm(prev => ({ ...prev, expectedReturnAt: e.target.value }))}
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="expectedReturnAt">Expected Return Date (Optional)</Label>
+                  <Input
+                    id="expectedReturnAt"
+                    type="datetime-local"
+                    value={issueForm.expectedReturnAt}
+                    onChange={(e) => setIssueForm(prev => ({ ...prev, expectedReturnAt: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="issueNotes">Issue Notes</Label>
+                  <Textarea
+                    id="issueNotes"
+                    value={issueForm.issueNotes}
+                    onChange={(e) => setIssueForm(prev => ({ ...prev, issueNotes: e.target.value }))}
+                    placeholder="Notes about this drive issue..."
+                    rows={3}
+                  />
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="issueNotes">Issue Notes</Label>
-                <Textarea
-                  id="issueNotes"
-                  value={issueForm.issueNotes}
-                  onChange={(e) => setIssueForm(prev => ({ ...prev, issueNotes: e.target.value }))}
-                  placeholder="Notes about this drive issue..."
-                  rows={3}
-                />
+              <div className="flex gap-3">
+                <Button onClick={handleIssueDrive} disabled={!issueForm.driveId || !issueForm.userId}>
+                  Issue Drive
+                </Button>
+                <Button variant="outline" onClick={() => setShowIssueForm(false)}>
+                  Cancel
+                </Button>
               </div>
             </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIssueDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleIssueDrive}>Issue Drive</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

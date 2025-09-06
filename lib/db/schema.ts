@@ -198,6 +198,70 @@ export const driveTracking = sqliteTable('drive_tracking', {
   createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 });
 
+// CAC Digital Signatures table - Stores CAC-based digital signatures for each workflow step
+export const cacSignatures = sqliteTable('cac_signatures', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  requestId: integer('request_id').notNull().references(() => aftRequests.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').notNull().references(() => users.id),
+  stepType: text('step_type').notNull(), // 'dao_approval', 'approver_approval', 'cpso_approval', 'dta_completion', 'sme_signature', 'custodian_disposition'
+  
+  // CAC Certificate Information
+  certificateSubject: text('certificate_subject').notNull(), // Distinguished Name from certificate
+  certificateIssuer: text('certificate_issuer').notNull(), // Certificate Authority
+  certificateSerial: text('certificate_serial').notNull(), // Certificate serial number
+  certificateThumbprint: text('certificate_thumbprint').notNull(), // SHA-1 thumbprint for identification
+  certificateNotBefore: integer('certificate_not_before', { mode: 'timestamp' }).notNull(),
+  certificateNotAfter: integer('certificate_not_after', { mode: 'timestamp' }).notNull(),
+  
+  // Digital Signature Data
+  signatureData: text('signature_data').notNull(), // Base64-encoded signature
+  signedData: text('signed_data').notNull(), // Hash of the data that was signed
+  signatureAlgorithm: text('signature_algorithm').notNull().default('RSA-SHA256'),
+  
+  // Signature Context
+  signatureReason: text('signature_reason'), // Why this signature was applied
+  signatureLocation: text('signature_location'), // Geographic location
+  ipAddress: text('ip_address'), // Client IP address
+  userAgent: text('user_agent'), // Browser/client information
+  
+  // Verification Status
+  isVerified: integer('is_verified', { mode: 'boolean' }).notNull().default(false),
+  verifiedAt: integer('verified_at', { mode: 'timestamp' }),
+  verificationNotes: text('verification_notes'),
+  
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+// CAC Certificate Trust Store - Stores trusted CA certificates for validation
+export const cacTrustStore = sqliteTable('cac_trust_store', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  certificateName: text('certificate_name').notNull(),
+  certificateData: text('certificate_data').notNull(), // Base64-encoded certificate
+  certificateThumbprint: text('certificate_thumbprint').notNull().unique(),
+  issuerDN: text('issuer_dn').notNull(), // Distinguished Name of issuer
+  subjectDN: text('subject_dn').notNull(), // Distinguished Name of subject
+  notBefore: integer('not_before', { mode: 'timestamp' }).notNull(),
+  notAfter: integer('not_after', { mode: 'timestamp' }).notNull(),
+  isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
+  isRootCA: integer('is_root_ca', { mode: 'boolean' }).notNull().default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+});
+
+// User Guides table
+export const userGuides = sqliteTable('user_guides', {
+  id: text('id').primaryKey(), // URL-friendly ID like 'requestor-creating-aft-request'
+  title: text('title').notNull(),
+  description: text('description').notNull(),
+  role: text('role').$type<UserRoleType>(), // Specific role or null for all roles
+  content: text('content').notNull(), // Markdown content
+  isPublished: integer('is_published', { mode: 'boolean' }).notNull().default(false),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  createdBy: integer('created_by').references(() => users.id),
+  updatedBy: integer('updated_by').references(() => users.id),
+});
+
 // Zod schemas for validation
 export const insertUserSchema = createInsertSchema(users);
 export const selectUserSchema = createSelectSchema(users);
@@ -207,6 +271,8 @@ export const insertDriveInventorySchema = createInsertSchema(driveInventory);
 export const selectDriveInventorySchema = createSelectSchema(driveInventory);
 export const insertDriveTrackingSchema = createInsertSchema(driveTracking);
 export const selectDriveTrackingSchema = createSelectSchema(driveTracking);
+export const insertUserGuideSchema = createInsertSchema(userGuides);
+export const selectUserGuideSchema = createSelectSchema(userGuides);
 
 // Additional validation schemas
 export const loginSchema = z.object({
@@ -233,3 +299,9 @@ export type DriveInventory = typeof driveInventory.$inferSelect;
 export type NewDriveInventory = typeof driveInventory.$inferInsert;
 export type DriveTracking = typeof driveTracking.$inferSelect;
 export type NewDriveTracking = typeof driveTracking.$inferInsert;
+export type CACSignature = typeof cacSignatures.$inferSelect;
+export type NewCACSignature = typeof cacSignatures.$inferInsert;
+export type CACTrustStore = typeof cacTrustStore.$inferSelect;
+export type NewCACTrustStore = typeof cacTrustStore.$inferInsert;
+export type UserGuide = typeof userGuides.$inferSelect;
+export type NewUserGuide = typeof userGuides.$inferInsert;

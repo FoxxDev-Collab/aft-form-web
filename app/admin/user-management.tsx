@@ -37,7 +37,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Edit, Trash2, UserCheck, UserX, Shield } from 'lucide-react';
+import { Plus, Edit, Trash2, UserCheck, UserX, Shield, Archive, RotateCcw } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -101,6 +101,7 @@ type EditUserFormValues = z.infer<typeof editUserSchema>;
 
 export function UserManagement() {
   const [users, setUsers] = useState<User[]>([]);
+  const [archivedUsers, setArchivedUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -141,7 +142,11 @@ export function UserManagement() {
       const response = await fetch('/api/users');
       if (response.ok) {
         const userData = await response.json();
-        setUsers(userData);
+        // Separate active and archived users
+        const activeUsers = userData.filter((user: User) => user.isActive);
+        const inactiveUsers = userData.filter((user: User) => !user.isActive);
+        setUsers(activeUsers);
+        setArchivedUsers(inactiveUsers);
       } else {
         toast.error('Failed to fetch users');
       }
@@ -269,8 +274,8 @@ export function UserManagement() {
     }
   };
 
-  // Delete user
-  const deleteUser = async (userId: number) => {
+  // Archive user (soft delete)
+  const archiveUser = async (userId: number) => {
     try {
       setActionLoading(userId);
       const response = await fetch(`/api/users/${userId}`, {
@@ -278,14 +283,40 @@ export function UserManagement() {
       });
 
       if (response.ok) {
-        toast.success('User deleted successfully');
+        toast.success('User archived successfully');
         fetchUsers();
       } else {
         const error = await response.json();
-        toast.error(error.error || 'Failed to delete user');
+        toast.error(error.error || 'Failed to archive user');
       }
     } catch {
-      toast.error('Error deleting user');
+      toast.error('Error archiving user');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  // Reactivate user
+  const reactivateUser = async (userId: number) => {
+    try {
+      setActionLoading(userId);
+      const response = await fetch(`/api/users/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ isActive: true }),
+      });
+
+      if (response.ok) {
+        toast.success('User reactivated successfully');
+        fetchUsers();
+      } else {
+        const error = await response.json();
+        toast.error(error.error || 'Failed to reactivate user');
+      }
+    } catch {
+      toast.error('Error reactivating user');
     } finally {
       setActionLoading(null);
     }
@@ -319,8 +350,8 @@ export function UserManagement() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle>Users</CardTitle>
-              <CardDescription>Manage system users and their permissions</CardDescription>
+              <CardTitle>Active Users</CardTitle>
+              <CardDescription>Manage active system users and their permissions</CardDescription>
             </div>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
@@ -674,19 +705,21 @@ export function UserManagement() {
                         </AlertDialogTrigger>
                         <AlertDialogContent>
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogTitle>Archive User?</AlertDialogTitle>
                             <AlertDialogDescription>
-                              This will deactivate {user.firstName} {user.lastName}&apos;s account.
-                              They will no longer be able to access the system.
+                              This will archive {user.firstName} {user.lastName}&apos;s account.
+                              They will no longer be able to access the system, but the account
+                              can be reactivated later if needed.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
-                              onClick={() => deleteUser(user.id)}
-                              className="bg-red-600 hover:bg-red-700"
+                              onClick={() => archiveUser(user.id)}
+                              className="bg-orange-600 hover:bg-orange-700"
                             >
-                              Delete User
+                              <Archive className="w-4 h-4 mr-2" />
+                              Archive User
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -700,6 +733,97 @@ export function UserManagement() {
           {users.length === 0 && (
             <div className="text-center py-6 text-muted-foreground">
               No users found.
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Archived Users Table */}
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Archived Users</CardTitle>
+              <CardDescription>Users who have been archived but can be reactivated</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Organization</TableHead>
+                <TableHead>Archived Date</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {archivedUsers.map((user) => (
+                <TableRow key={user.id} className="opacity-75">
+                  <TableCell className="font-medium">
+                    {user.firstName} {user.lastName}
+                  </TableCell>
+                  <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap gap-1">
+                      <Badge className={getRoleBadgeColor(user.role)} variant="outline">
+                        {user.role.toUpperCase().replace('_', ' ')} (Primary)
+                      </Badge>
+                      {user.roles?.filter(role => role !== user.role).map((role) => (
+                        <Badge key={role} className={getRoleBadgeColor(role)} variant="outline">
+                          {role.toUpperCase().replace('_', ' ')}
+                        </Badge>
+                      ))}
+                    </div>
+                  </TableCell>
+                  <TableCell>{user.organization || '-'}</TableCell>
+                  <TableCell>
+                    {new Date(user.updatedAt).toLocaleDateString()}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={actionLoading === user.id}
+                          >
+                            <RotateCcw className="w-4 h-4" />
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Reactivate User?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This will reactivate {user.firstName} {user.lastName}&apos;s account.
+                              They will be able to access the system again with their previous permissions.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => reactivateUser(user.id)}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              <RotateCcw className="w-4 h-4 mr-2" />
+                              Reactivate User
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+          {archivedUsers.length === 0 && (
+            <div className="text-center py-6 text-muted-foreground">
+              No archived users found.
             </div>
           )}
         </CardContent>
